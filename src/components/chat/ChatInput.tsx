@@ -47,6 +47,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         onInput={handleInput}
         placeholder="Ask about appointments, services..."
         disabled={disabled}
+        maxLength={1000}
         rows={1}
         className="flex-1 resize-none bg-muted/50 rounded-xl px-3.5 py-2.5 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 disabled:opacity-50"
       />

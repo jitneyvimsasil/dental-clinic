@@ -119,6 +119,7 @@ function IntakeFormInner() {
                     placeholder="Juan Dela Cruz"
                     value={formData.name}
                     onChange={(e) => updateField("name", e.target.value)}
+                    maxLength={200}
                     required
                   />
                 </div>
@@ -130,6 +131,8 @@ function IntakeFormInner() {
                     placeholder="0927-112-1480"
                     value={formData.phone}
                     onChange={(e) => updateField("phone", e.target.value)}
+                    maxLength={20}
+                    pattern="[0-9+\-\s()]*"
                     required
                   />
                 </div>
@@ -144,6 +147,7 @@ function IntakeFormInner() {
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) => updateField("email", e.target.value)}
+                  maxLength={254}
                   required
                 />
               </div>
@@ -176,6 +180,7 @@ function IntakeFormInner() {
                     placeholder="e.g. PhilHealth, or none"
                     value={formData.insurance}
                     onChange={(e) => updateField("insurance", e.target.value)}
+                    maxLength={200}
                   />
                 </div>
               </div>
