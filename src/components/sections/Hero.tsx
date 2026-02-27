@@ -1,5 +1,5 @@
 import { CLINIC } from "@/lib/constants";
-import { Phone, MapPin, ChevronDown } from "lucide-react";
+import { MapPin, ChevronDown } from "lucide-react";
 
 export function Hero() {
   return (
@@ -41,13 +41,6 @@ export function Hero() {
               className="inline-flex items-center justify-center h-13 px-8 bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
             >
               Book an Appointment
-            </a>
-            <a
-              href={`tel:${CLINIC.phoneRaw}`}
-              className="inline-flex items-center justify-center gap-2 h-13 px-8 bg-card text-foreground font-medium rounded-xl border border-border hover:bg-secondary transition-colors"
-            >
-              <Phone className="w-4 h-4" />
-              {CLINIC.phone}
             </a>
           </div>
 
