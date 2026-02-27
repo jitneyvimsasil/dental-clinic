@@ -19,7 +19,7 @@ export function ChatWidget() {
             : "opacity-0 translate-y-4 pointer-events-none"
         }`}
       >
-        <ChatPanel onClose={() => setIsOpen(false)} chat={chat} />
+        <ChatPanel onClose={() => setIsOpen(false)} chat={chat} isOpen={isOpen} />
       </div>
 
       {/* Floating button */}

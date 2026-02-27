@@ -12,9 +12,10 @@ interface ChatPanelProps {
     isLoading: boolean;
     sendMessage: (text: string) => void;
   };
+  isOpen?: boolean;
 }
 
-export function ChatPanel({ onClose, chat }: ChatPanelProps) {
+export function ChatPanel({ onClose, chat, isOpen }: ChatPanelProps) {
   const { messages, isLoading, sendMessage } = chat;
 
   return (
@@ -46,7 +47,7 @@ export function ChatPanel({ onClose, chat }: ChatPanelProps) {
       <ChatMessageList messages={messages} isLoading={isLoading} />
 
       {/* Input */}
-      <ChatInput onSend={sendMessage} disabled={isLoading} />
+      <ChatInput onSend={sendMessage} disabled={isLoading} autoFocus={isOpen} />
     </div>
   );
 }

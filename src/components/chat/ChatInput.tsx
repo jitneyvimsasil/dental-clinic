@@ -1,16 +1,26 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { SendHorizonal } from "lucide-react";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
+  autoFocus?: boolean;
 }
 
-export function ChatInput({ onSend, disabled }: ChatInputProps) {
+export function ChatInput({ onSend, disabled, autoFocus }: ChatInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (autoFocus) {
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocus]);
 
   const handleSend = useCallback(() => {
     const trimmed = value.trim();

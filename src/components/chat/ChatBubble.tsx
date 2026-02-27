@@ -5,8 +5,17 @@ interface ChatBubbleProps {
   message: ChatMessage;
 }
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/__(.*?)__/g, "$1")
+    .replace(/_(.*?)_/g, "$1");
+}
+
 export function ChatBubble({ message }: ChatBubbleProps) {
   const isUser = message.role === "user";
+  const content = isUser ? message.content : stripMarkdown(message.content);
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -22,7 +31,7 @@ export function ChatBubble({ message }: ChatBubbleProps) {
         {message.isError && (
           <AlertCircle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
         )}
-        <span className="whitespace-pre-wrap">{message.content}</span>
+        <span className="whitespace-pre-wrap">{content}</span>
       </div>
     </div>
   );
