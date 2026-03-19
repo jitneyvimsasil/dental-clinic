@@ -1,9 +1,9 @@
 import { CLINIC } from "@/lib/constants";
-import { MapPin, ChevronDown } from "lucide-react";
+import { MapPin, ChevronDown, Phone } from "lucide-react";
 
 export function Hero() {
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center overflow-hidden pt-16">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-sage-light via-background to-background" />
       <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-sage-light/40 to-transparent rounded-bl-[120px]" />
@@ -21,16 +21,11 @@ export function Hero() {
 
           {/* Heading */}
           <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-foreground mb-6">
-            {CLINIC.name}
+            {CLINIC.tagline}
           </h1>
 
-          {/* Tagline */}
-          <p className="text-xl sm:text-2xl text-muted-foreground font-light leading-relaxed mb-4">
-            {CLINIC.tagline}
-          </p>
-
           {/* Description */}
-          <p className="text-base text-muted-foreground/80 leading-relaxed max-w-lg mb-10">
+          <p className="text-lg text-muted-foreground leading-relaxed max-w-lg mb-10">
             {CLINIC.description}
           </p>
 
@@ -42,12 +37,21 @@ export function Hero() {
             >
               Book an Appointment
             </a>
+            <a
+              href={`tel:${CLINIC.phoneRaw}`}
+              className="inline-flex items-center justify-center gap-2 h-13 px-8 border border-border bg-card/50 text-foreground font-medium rounded-xl hover:bg-card transition-colors"
+            >
+              <Phone className="w-4 h-4" />
+              Call Us Today
+            </a>
           </div>
 
           {/* Quick info */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="w-4 h-4 text-primary" />
             <span>{CLINIC.address}</span>
+            <span className="mx-2 text-border">|</span>
+            <span>Mon-Fri 8AM-5PM</span>
           </div>
         </div>
       </div>
