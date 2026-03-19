@@ -1,5 +1,13 @@
 import { GALLERY_ITEMS } from "@/lib/constants";
 import { ArrowRight } from "lucide-react";
+import { BeforeAfterVisual } from "@/components/illustrations/BeforeAfterVisual";
+
+const variantMap: Record<string, "whitening" | "veneers" | "invisalign" | "implants"> = {
+  "smile-1": "whitening",
+  "smile-2": "veneers",
+  "smile-3": "invisalign",
+  "smile-4": "implants",
+};
 
 export function Gallery() {
   return (
@@ -24,38 +32,24 @@ export function Gallery() {
           {GALLERY_ITEMS.map((item) => (
             <div
               key={item.id}
-              className="group relative rounded-2xl overflow-hidden bg-gradient-to-br from-secondary via-sage-light to-secondary aspect-[16/10]"
+              className="group relative rounded-2xl overflow-hidden bg-card border border-border/50 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
             >
-              {/* Before/After placeholder layout */}
-              <div className="absolute inset-0 flex">
-                <div className="flex-1 bg-muted/40 flex items-center justify-center border-r border-dashed border-primary/20">
-                  <div className="text-center">
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground/60 mb-1">
-                      Before
-                    </p>
-                    <div className="w-16 h-16 rounded-full bg-primary/5 mx-auto" />
-                  </div>
-                </div>
-                <div className="flex-1 bg-sage-light/30 flex items-center justify-center">
-                  <div className="text-center">
-                    <p className="text-xs font-medium uppercase tracking-wider text-primary/60 mb-1">
-                      After
-                    </p>
-                    <div className="w-16 h-16 rounded-full bg-primary/10 mx-auto" />
-                  </div>
-                </div>
+              {/* SVG visual */}
+              <div className="aspect-[16/10]">
+                <BeforeAfterVisual
+                  variant={variantMap[item.id] || "whitening"}
+                  className="w-full h-full text-primary"
+                />
               </div>
 
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/70 transition-all duration-300 flex items-end">
-                <div className="p-6 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                  <p className="text-primary-foreground font-semibold mb-1">
-                    {item.treatment}
-                  </p>
-                  <p className="text-primary-foreground/70 text-sm">
-                    {item.description}
-                  </p>
-                </div>
+              {/* Bottom info bar */}
+              <div className="px-5 py-4 border-t border-border/30 bg-card">
+                <p className="font-semibold text-foreground text-sm">
+                  {item.treatment}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {item.description}
+                </p>
               </div>
             </div>
           ))}
