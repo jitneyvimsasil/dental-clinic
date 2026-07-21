@@ -58,12 +58,18 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ patient });
       }
       case "create_patient": {
-        const input = createPatientSchema.parse(body.args ?? {});
+        // isNewPatient forced true — by construction, this function only
+        // ever runs for a caller lookup_patient already confirmed isn't on
+        // file, so it's never actually the LLM's call to make.
+        const input = createPatientSchema.parse({ ...(body.args ?? {}), isNewPatient: true });
         const patient = await createPatient(supabase, input);
         return NextResponse.json({ patient });
       }
       case "book_appointment": {
-        const input = bookAppointmentSchema.parse(body.args ?? {});
+        // source is forced server-side rather than trusted from the LLM's
+        // tool call — this endpoint is exclusively hit by RetellAI, so it's
+        // always "phone" regardless of what the agent's tool call includes.
+        const input = bookAppointmentSchema.parse({ ...(body.args ?? {}), source: "phone" });
         const appointment = await bookAppointment(supabase, input);
         return NextResponse.json({ appointment });
       }
