@@ -14,9 +14,12 @@ export const lookupPatientSchema = z.object({
 });
 
 export const createPatientSchema = z.object({
-  name: z.string().min(1, "Name is required").max(200),
-  phone: z.string().min(1, "Phone is required").max(20),
-  email: z.string().email("Please enter a valid email").max(254),
+  name: z.string().trim().min(1, "Name is required").max(200),
+  phone: z.string().trim().min(1, "Phone is required").max(20),
+  // Normalized to lowercase — most mail providers (including Gmail) treat
+  // the local part case-insensitively, so storing mixed case risks treating
+  // the same person as two different patients on a future lookup.
+  email: z.string().trim().email("Please enter a valid email").max(254).toLowerCase(),
   treatment: z.string().min(1, "Please select a treatment").max(200),
   insurance: z.string().max(200).optional(),
   isNewPatient: z.boolean().default(true),
