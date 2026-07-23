@@ -19,11 +19,13 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob:",
-              // primary-production-bb684 (n8n) stays until Phase 5 replaces lib/api.ts's
-              // direct calls; Supabase is the new project URL; the LiveKit host is
-              // RetellAI's Web Call SDK's hardcoded WebSocket endpoint (verified in
+              // n8n's host is gone — lib/api.ts now posts to this site's own
+              // /api/intake and /api/chat instead of calling n8n directly from
+              // the browser. Supabase is needed for the dashboard's client-side
+              // Auth JS; the LiveKit host is RetellAI's Web Call SDK's
+              // hardcoded WebSocket endpoint (verified in
               // node_modules/retell-client-js-sdk/src/index.ts), not project-specific.
-              "connect-src 'self' https://primary-production-bb684.up.railway.app https://vgygzogmchvrdpqzzbtd.supabase.co wss://retell-ai-4ihahnq7.livekit.cloud",
+              "connect-src 'self' https://vgygzogmchvrdpqzzbtd.supabase.co wss://retell-ai-4ihahnq7.livekit.cloud",
               "frame-src https://www.google.com https://maps.google.com",
             ].join("; "),
           },

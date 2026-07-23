@@ -1,38 +1,22 @@
 import type { IntakeFormData, IntakeResponse } from "./types";
-import { MAX_MESSAGE_LENGTH } from "./types";
 
-const N8N_BASE = process.env.NEXT_PUBLIC_N8N_BASE_URL;
-const INTAKE_PATH = process.env.NEXT_PUBLIC_INTAKE_WEBHOOK_PATH;
-const CHAT_WEBHOOK_ID = process.env.NEXT_PUBLIC_CHAT_WEBHOOK_ID;
+// Both functions used to call n8n directly from the browser via public
+// NEXT_PUBLIC_* webhook URLs, with only client-side (trivially bypassable)
+// rate limiting — the same exposed-webhook anti-pattern already fixed on
+// vim-automations-website's contact form. They now proxy through this
+// site's own API routes, which hold every secret server-side and enforce
+// rate limiting there instead. Signatures are unchanged so the calling
+// components (IntakeForm.tsx, useChat.ts) needed no changes.
 
 const FORM_TIMEOUT_MS = 15_000;
 const CHAT_TIMEOUT_MS = 30_000;
-const RATE_LIMIT = { maxRequests: 10, windowMs: 60_000 };
 
-let requestTimestamps: number[] = [];
-
-function isRateLimited(): boolean {
-  const now = Date.now();
-  requestTimestamps = requestTimestamps.filter(
-    (t) => now - t < RATE_LIMIT.windowMs
-  );
-  if (requestTimestamps.length >= RATE_LIMIT.maxRequests) return true;
-  requestTimestamps.push(now);
-  return false;
-}
-
-export async function submitIntakeForm(
-  data: IntakeFormData
-): Promise<IntakeResponse> {
-  if (!N8N_BASE || !INTAKE_PATH) {
-    return { success: false, message: "Webhook URL not configured", error: "config" };
-  }
-
+export async function submitIntakeForm(data: IntakeFormData): Promise<IntakeResponse> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), FORM_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${N8N_BASE}${INTAKE_PATH}`, {
+    const response = await fetch("/api/intake", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -40,16 +24,17 @@ export async function submitIntakeForm(
     });
     clearTimeout(timeoutId);
 
+    const result = await response.json().catch(() => null);
+
     if (!response.ok) {
       return {
         success: false,
-        message: "Something went wrong. Please try again.",
+        message: result?.message ?? "Something went wrong. Please try again.",
         error: `HTTP ${response.status}`,
       };
     }
 
-    const result = await response.json();
-    return Array.isArray(result) ? result[0] : result;
+    return result;
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof DOMException && error.name === "AbortError") {
@@ -72,22 +57,6 @@ export async function sendChatMessage(
   message: string,
   signal?: AbortSignal
 ): Promise<{ output: string } | { error: string }> {
-  if (!N8N_BASE || !CHAT_WEBHOOK_ID) {
-    return { error: "Chat not configured" };
-  }
-
-  if (!message.trim()) {
-    return { error: "Message cannot be empty" };
-  }
-
-  if (message.length > MAX_MESSAGE_LENGTH) {
-    return { error: `Message too long (max ${MAX_MESSAGE_LENGTH} characters)` };
-  }
-
-  if (isRateLimited()) {
-    return { error: "Too many messages. Please wait a moment." };
-  }
-
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS);
 
@@ -96,28 +65,21 @@ export async function sendChatMessage(
   }
 
   try {
-    const response = await fetch(
-      `${N8N_BASE}/webhook/${CHAT_WEBHOOK_ID}/chat`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "sendMessage",
-          sessionId,
-          chatInput: message,
-        }),
-        signal: controller.signal,
-      }
-    );
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, message }),
+      signal: controller.signal,
+    });
     clearTimeout(timeoutId);
 
+    const result = await response.json().catch(() => null);
+
     if (!response.ok) {
-      return { error: `Request failed: ${response.status}` };
+      return { error: result?.error ?? `Request failed: ${response.status}` };
     }
 
-    const data = await response.json();
-    const result = Array.isArray(data) ? data[0] : data;
-    return { output: result.output || result.text || String(result) };
+    return result;
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof DOMException && error.name === "AbortError") {

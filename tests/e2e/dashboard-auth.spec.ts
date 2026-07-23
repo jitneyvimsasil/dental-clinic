@@ -12,6 +12,12 @@ const ROLES = [
 ];
 
 test.describe("dashboard auth + RLS access", () => {
+  // Serial, not parallel: 3 simultaneous real sign-ins against the same
+  // Supabase Auth project raced and intermittently failed when run in
+  // parallel (confirmed a test-infra flake, not a product bug, by rerunning
+  // with --workers=1 and getting a clean pass every time).
+  test.describe.configure({ mode: "serial" });
+
   test("unauthenticated visitors are redirected to /login", async ({ page }) => {
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login/);
