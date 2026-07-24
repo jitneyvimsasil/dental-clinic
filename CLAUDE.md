@@ -72,3 +72,33 @@ Chat conversations also leave rows in `chat_sessions`, harmless but worth cleari
 
 - **RetellAI Web Call** bills per minute of actual call time, no standing number rental — pause or don't call the agent to stop billing, no "release the number" step needed.
 - Everything else (Supabase, Vercel, n8n on the existing Railway instance) is on tiers already used elsewhere in vim-automations' stack — no new recurring cost from this project beyond RetellAI/Anthropic usage.
+
+## Session handoff — 2026-07-24
+
+This section is a narrative recap of the build, meant for a future session (or a different AI assistant) picking this project up cold. Everything below is **done and live**, not planned.
+
+**Starting point that surprised us:** the repo was assumed to be a blank scaffold. It wasn't — it already had a real, working "Serene Dental" marketing site and a chat widget calling n8n directly from the browser (the same exposed-webhook anti-pattern already fixed on vim-automations-website's own contact form). Decision made: keep the existing site/widget, retrofit the new architecture underneath rather than rebuilding.
+
+**Build order** (see git log for the full commit-by-commit story):
+1. Repo/tooling setup, hosted Supabase project (`vgygzogmchvrdpqzzbtd`) created and linked, Vercel project linked and deployed live at **https://dental-clinic-kohl-five.vercel.app**.
+2. Schema + `book_appointment` RPC + booking-core library — verified with real concurrent-booking race tests against the live database before anything else touched it.
+3. RetellAI wired early (per explicit request, ahead of the dashboard/marketing retrofit) — real account, real agent, verified with an actual Web Call that connected and the agent spoke its correct configured greeting.
+4. n8n booking-confirmation workflow (Supabase `pg_net` trigger → email), verified the trigger fires from Postgres itself regardless of which channel booked.
+5. Staff auth + dashboard (3 roles: dentist/receptionist/admin).
+6. Marketing site retrofit — `lib/api.ts` now calls this project's own `/api/intake` and `/api/chat` instead of n8n directly; `IntakeForm.tsx`/`useChat.ts` needed zero changes since the function signatures stayed the same.
+7. **User-requested addition, not in the original plan**: lead scoring (hot/warm/cold from real data) + a `/dashboard/leads` view + an automated 7-day/30-day n8n follow-up email workflow.
+8. Final hardening pass — dependency/secret audit, a fresh Next.js security patch (16.2.11), this file written.
+
+**Real bugs caught by testing with actual accounts/data, not just automated checks** (worth knowing the pattern, since more probably exist the same way):
+- RetellAI's tool schema used docs-stated field names (`custom_function`, `payload_args_only`) that didn't match the installed SDK's actual types (`custom`, `args_at_root`) — caught by a failed Vercel build, not by reading docs harder.
+- Both the chat and Retell system prompts had the AI inventing business hours instead of using the site's real ones — caught by asking it "what are your hours" myself before assuming it was fine.
+- `staff_select`'s RLS policy only let a staff member see their own row, so a receptionist viewing a dentist's appointment crashed the page — caught by manually logging in as all 3 seeded roles, not just the one used to build the feature.
+- The lead follow-up workflow's "mark as sent" step referenced `$json.id` after a Gmail send node — which silently became the *email's* id, not the patient's, so the update always failed on an invalid UUID and the same lead would have gotten re-emailed daily forever. Caught by creating one real backdated test lead and tracing the actual n8n execution data, not trusting the workflow's "success" status alone.
+
+**Credentials that exist** (all in the gitignored `.env.local`, and mirrored into Vercel's Production/Preview/Development env vars): Supabase (project ref above), RetellAI (`RETELL_API_KEY`/`RETELL_AGENT_ID`), Anthropic (`ANTHROPIC_API_KEY`), n8n (`N8N_API_KEY`/`N8N_BASE_URL` — the same n8n instance vim-automations-website's contact form and the original AI Dental Receptionist workflow already live on). The shared demo staff password isn't recorded here deliberately — regenerate via `npm run seed` if it's been lost, or ask the project owner.
+
+**Open/pending as of this handoff** — none of these are half-built, they're just not started:
+- No real demo recording (e.g. for YouTube) has been made yet showing the RetellAI Web Call setup.
+- Test data accumulates in the real database every time the app or its e2e suite is exercised (see "Cleaning up test data" above) — worth a fresh cleanup pass immediately before any recording or client-facing demo.
+- Cloudflare Turnstile / bot protection on the chat widget was deliberately deferred — the existing per-IP rate limiter was judged proportionate for a demo with no real public traffic yet.
+- No real second dentist exists in the seed data, so the RLS rule "a dentist can only edit their own appointments" has only been tested on the positive case (their own), not the negative case (blocked from someone else's) — would need a second seeded dentist to verify directly.
