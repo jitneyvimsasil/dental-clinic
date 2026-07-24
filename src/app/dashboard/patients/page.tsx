@@ -9,13 +9,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { LeadStatusBadge } from "@/components/lead-status-badge";
 
 export default async function PatientsPage() {
   const supabase = await createServerSupabaseClient();
 
   const { data: patients } = await supabase
-    .from("patients")
-    .select("id, name, phone, email, treatment, is_new_patient, urgency")
+    .from("patient_lead_status")
+    .select("id, name, phone, email, treatment, is_new_patient, lead_status, days_since_contact")
     .order("created_at", { ascending: false })
     .limit(200);
 
@@ -34,6 +35,7 @@ export default async function PatientsPage() {
             <TableHead>Email</TableHead>
             <TableHead>Treatment</TableHead>
             <TableHead>Type</TableHead>
+            <TableHead>Lead</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -51,6 +53,9 @@ export default async function PatientsPage() {
                 <Badge variant={p.is_new_patient ? "default" : "secondary"}>
                   {p.is_new_patient ? "New" : "Returning"}
                 </Badge>
+              </TableCell>
+              <TableCell>
+                <LeadStatusBadge status={p.lead_status} />
               </TableCell>
             </TableRow>
           ))}

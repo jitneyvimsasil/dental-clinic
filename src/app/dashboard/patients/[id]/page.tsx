@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LeadStatusBadge } from "@/components/lead-status-badge";
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
@@ -20,7 +21,7 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
   const supabase = await createServerSupabaseClient();
 
   const [{ data: patient }, { data: appointments }] = await Promise.all([
-    supabase.from("patients").select("*").eq("id", id).maybeSingle(),
+    supabase.from("patient_lead_status").select("*").eq("id", id).maybeSingle(),
     supabase
       .from("appointments")
       .select("id, starts_at, treatment_type, status, staff(name)")
@@ -37,9 +38,13 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
       </Link>
 
       <div>
-        <h1 className="text-2xl font-semibold mb-1">{patient.name}</h1>
+        <div className="flex items-center gap-2 mb-1">
+          <h1 className="text-2xl font-semibold">{patient.name}</h1>
+          <LeadStatusBadge status={patient.lead_status} />
+        </div>
         <p className="text-sm text-muted-foreground">
-          {patient.is_new_patient ? "New patient" : "Returning patient"} · urgency: {patient.urgency}
+          {patient.is_new_patient ? "New patient" : "Returning patient"} · urgency: {patient.urgency} ·{" "}
+          {patient.days_since_contact === 0 ? "contacted today" : `${patient.days_since_contact} days since contact`}
         </p>
       </div>
 
